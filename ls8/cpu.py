@@ -11,6 +11,13 @@ class CPU:
         self.registers = bytearray(8)
         self.pc = 0
         
+    def ram_read(self, address):
+        """ should accept the address to read and return the value stored """
+        return self.memory[address]
+
+    def ram_write(self, address, data):
+        """ should accept the value to write and the address to write to """
+        self.memory[address] = data
 
     def load(self):
         """Load a program into memory."""
@@ -22,10 +29,10 @@ class CPU:
         program = [
             # From print8.ls8
             0b10000010, # LDI R0,8
-            0b00000000, # NOP
-            0b00001000, # ?
+            0b00000000, # NOP R0
+            0b00001000, # LDI R0, 8
             0b01000111, # PRN R0
-            0b00000000, # NOP
+            0b00000000, # NOP R0
             0b00000001, # HLT
         ]
 
@@ -65,20 +72,15 @@ class CPU:
 
         print()
 
-    def ram_read(self, address):
-        """ should accept the address to read and return the value stored """
-        return self.memory[address]
-
-    def ram_write(self, address, data):
-        """ should accept the value to write and the address to write to """
-        self.memory[address] = data
 
 
     def run(self):
         """Run the CPU."""
+        # _opcode = _operands
         IR = self.pc
         LDI = 0b10000010
         PRN = 0b01000111
+        # PRN = 0b00001000
         HLT = 0b00000001
 
         running = True
@@ -90,7 +92,6 @@ class CPU:
 
             if instruction == LDI:
                 self.registers[op_a] == op_b
-
                 IR += 3
 
             elif instruction == PRN:

@@ -13,6 +13,8 @@
 * [Is the flags `FL` register one of the `Rx` registers, or is it a special register?](#q900)
 * [What about the `IR`, `MAR`, and `MDR` registers?](#q1000)
 * [If RAM is faster than an SSD, why not just store everything in RAM?](#q1200)
+  -- RAM is Random Access Memory - it hold temporary data to be randomly access
+  -- SSD is Solid State Drive - it is the storage of files and anything too large for RAM
 * [Do CPUs get hot because of the power constantly running through them?](#q1300)
 * [How do I move the `PC` to the next instruction without hardcoding the instruction length?](#q1700)
 * [Why are the ALU and the RAM read/write functions broken out? Can we just code the lines to do the work directly?](#q1900)
