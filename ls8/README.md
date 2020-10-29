@@ -78,6 +78,7 @@ general-purpose registers.
 >
 > ```python
 > x = [0] * 25  # x is a list of 25 zeroes
+> x = bytearray(25) # x is iterable object in range 25
 > ```
 
 Also add properties for any internal registers you need, e.g. `PC`.

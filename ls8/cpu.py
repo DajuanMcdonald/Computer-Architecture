@@ -29,7 +29,7 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.memory[address] = instruction
             address += 1
 
 
@@ -37,7 +37,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -58,9 +58,18 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.registers[i], end='')
 
         print()
+
+    def ram_read(self, value):
+        """ should accept the address to read and return the value stored """
+        pass
+
+    def ram_write(self, value):
+        """ should accept the value to write and the address to write to """
+        pass
+
 
     def run(self):
         """Run the CPU."""
