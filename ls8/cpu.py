@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.memory = bytearray(256)
+        self.registers = bytearray(8)
+        
 
     def load(self):
         """Load a program into memory."""
