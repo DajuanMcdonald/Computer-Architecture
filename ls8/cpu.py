@@ -62,13 +62,13 @@ class CPU:
 
         print()
 
-    def ram_read(self, value):
+    def ram_read(self, address, value):
         """ should accept the address to read and return the value stored """
-        pass
+        return self.memory[address].pop(value)
 
-    def ram_write(self, value):
+    def ram_write(self, address, value):
         """ should accept the value to write and the address to write to """
-        pass
+        self.memory[address].append(value)
 
 
     def run(self):
