@@ -100,15 +100,16 @@ class CPU:
                     self.memory[address] = int(instruction, 2)
                     address += 1
 
-    def ram_read(self, data):
+    def ram_read(self, memory_address_register):
         """ should accept the address to read and return the value stored """
-        return self.memory[data]
+        memory_data_register = self.memory[memory_address_register]
+        return memory_data_register
 
 
-    def ram_write(self, address, data):
+    def ram_write(self, value, memory_address_register):
         """ should accept the value to write and the address to write to """
-        self.memory[address] = data
-        
+        self.memory[memory_address_register] = value
+
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
