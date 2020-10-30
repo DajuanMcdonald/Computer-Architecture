@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+from sys import argv
 
 class CPU:
     """Main CPU class."""
@@ -36,6 +37,7 @@ class CPU:
         The value of the key pressed is stored in address `0xF4`
         
         """
+        SP = 7
         self.registers[SP] = 0xF4
 
 
@@ -90,6 +92,7 @@ class CPU:
     def load(self, program):
 
         """Load a program into memory."""
+        # Step 7: Un-hardcode the machine code
 
         address = 0
         
@@ -97,18 +100,24 @@ class CPU:
             if instruction:
                 instruction = instruction.split()[0]
                 if instruction[0] != '#':
+
+                    # convert the binary strings to integer values to store in RAM. The built-in `int()` function
                     self.memory[address] = int(instruction, 2)
                     address += 1
 
+    """
+     Add RAM functions
+    """
     def ram_read(self, memory_address_register):
         """ should accept the address to read and return the value stored """
         memory_data_register = self.memory[memory_address_register]
         return memory_data_register
 
 
-    def ram_write(self, value, memory_address_register):
+
+    def ram_write(self, memory_data_register, memory_address_register):
         """ should accept the value to write and the address to write to """
-        self.memory[memory_address_register] = value
+        self.memory[memory_address_register] = memory_data_register
 
 
     def alu(self, op, reg_a, reg_b):
@@ -147,34 +156,47 @@ class CPU:
 
 
     def run(self):
-        """Run the CPU."""
+        """Run the CPU. Implement the core of `CPU`'s `run()` method """
         # _opcode = _operands
         IR = self.PC
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
+        # MUL = 0b10100010
 
         running = True
 
         while running:
-            instruction = self.ram_read(IR)
-            op_a = self.ram_read(IR + 1)
-            op_b = self.ram_read(IR + 2)
+            IR = self.ram_read(self.PC)
+            # op_a = register_address
+            # op_b = register_data
 
-            if instruction == LDI:
-                self.registers[op_a] == op_b
-                IR += 3
-
-            elif instruction == PRN:
-                print(self.registers[op_a])
-                IR += 2
-
-            elif instruction == HLT:
-                running = False
-                IR += 1
+            #   Step 4: Implement the `HLT` instruction handler
+            if IR == HLT:
+                # running = False
+                # self.PC += 1
                 sys.exit(0)
+
+
+            # Step 5: Add the `LDI` instruction
+            elif IR == LDI:
+                op_a = self.ram_read(self.PC + 1)
+                op_b = self.ram_read(self.PC + 2)
+                self.registers[op_a] = op_b
+                self.PC += 3
+
+
+            # Step 6: Add the `PRN` instruction
+            elif IR == PRN:
+                op_a = self.memory[self.PC + 1]
+                print(self.registers[op_a])
+                self.PC += 2
+
+            # elif instruction == MUL:
+            #     print(self.registers[op_a] * self.registers[op_b])
+
 
             else:
                 print(f'Unknown instruction at: {IR}')
-                running = False
+                # running = False
                 sys.exit(1)
