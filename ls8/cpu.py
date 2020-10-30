@@ -76,10 +76,7 @@ class CPU:
 
         * CMP : Compare the values in two registers.
         """
-        self.INSTRUCTION_SET = {
-            'CALL' : 0b01010000,
-            'INT' : 0b01010010,
-            'MUL' : 0b10100010,
+        self.pc_mutators = {
             'PRN' : 0b01000111,
             'LDI' : 0b10000010,
             'HLT' : 0b00000001,
@@ -126,7 +123,7 @@ class CPU:
 
         if op == "ADD":
             self.registers[reg_a] += self.registers[reg_b]
-        #elif op == "SUB": etc
+        
         elif op == "SUB":
             self.registers[reg_a] -= self.registers[reg_b]
         elif op == "MUL":
@@ -168,8 +165,23 @@ class CPU:
 
         while running:
             IR = self.ram_read(self.PC)
-            op = {
-                0b10100010: 'MUL'
+            # *These are instructions handled by the ALU.*
+            alu_ops = {
+                0b10100010: 'MUL',
+                0b10100011: 'DIV',
+                0b10100100: 'MOD',
+                0b10100001: 'SUB',
+                0b10100000: 'ADD',
+                0b10101011: 'XOR',
+                0b01101001: 'NOT',
+                0b10101010: 'OR',
+                0b01100101: 'INC',
+                0b01100110: 'DEC',
+                0b10100111: 'CMP',
+                0b10101100: 'SHL',
+                0b10101101: 'SHR',
+                0b10101000: 'AND'
+
             }
 
 
@@ -187,11 +199,6 @@ class CPU:
                 self.registers[register_a] = register_b
                 self.PC += 3
             
-            elif IR in op:
-                register_a = self.memory[self.PC + 1]
-                register_b = self.memory[self.PC + 2]
-                self.alu(op[IR], register_a, register_b)
-                self.PC += 3
 
 
             # Step 6: Add the `PRN` instruction
@@ -200,6 +207,12 @@ class CPU:
                 print(self.registers[register_a])
                 self.PC += 2
             
+            # Arithmetic (alu) Operations
+            elif IR in alu_ops:
+                register_a = self.memory[self.PC + 1]
+                register_b = self.memory[self.PC + 2]
+                self.alu(alu_ops[IR], register_a, register_b)
+                self.PC += 3
 
             else:
                 print(f'Unknown instruction at: {IR}')
