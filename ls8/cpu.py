@@ -7,13 +7,47 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.memory = bytearray(256)
+        """
+        ## Registers
+
+        # 8 general-purpose 8-bit numeric registers R0-R7.
+        # * R5 is reserved as the interrupt mask (IM)
+        # * R6 is reserved as the interrupt status (IS)
+        # * R7 is reserved as the stack pointer (SP)
+        """
         self.registers = bytearray(8)
-        self.pc = 0
+        """
+        ## Stack
+        # total of 256 bytes of memory
+        """
+        self.memory = bytearray(256)
+
+        """
+        The SP points at the value at the top of the stack (most recently pushed), or at
+        address `F4` if the stack is empty.
         
-    def ram_read(self, address):
+        """
+        self.registers[SP] = 0xF4
+
+
+        """#`PC`: Program Counter, address of the currently executing instruction """
+        self.PC = 0
+
+        """# `IR`: Instruction Register, contains a copy of the currently executing instruction"""
+        self.IR = 0
+
+        """
+        #  `FL`: Flags, holds the current flags status
+        # These flags can change based on the operands given to the `CMP` opcode.
+        # If a particular bit is set, that flag is "true"
+        """
+        self.FL = 0
+
+
+        
+    def ram_read(self, data):
         """ should accept the address to read and return the value stored """
-        return self.memory[address]
+        return self.memory[data]
 
     def ram_write(self, address, data):
         """ should accept the value to write and the address to write to """
@@ -59,12 +93,12 @@ class CPU:
         """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
+            self.PC,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.ram_read(self.PC),
+            self.ram_read(self.PC + 1),
+            self.ram_read(self.PC + 2)
         ), end='')
 
         for i in range(8):
@@ -77,10 +111,9 @@ class CPU:
     def run(self):
         """Run the CPU."""
         # _opcode = _operands
-        IR = self.pc
+        IR = self.PC
         LDI = 0b10000010
         PRN = 0b01000111
-        # PRN = 0b00001000
         HLT = 0b00000001
 
         running = True
@@ -99,8 +132,11 @@ class CPU:
                 IR += 2
 
             elif instruction == HLT:
+                running = False
+                IR += 1
                 sys.exit(0)
 
             else:
                 print(f'Unknown instruction at: {IR}')
+                running = False
                 sys.exit(1)
