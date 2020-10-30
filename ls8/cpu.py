@@ -3,6 +3,8 @@
 import sys
 from sys import argv
 
+SP = 7
+
 class CPU:
     """Main CPU class."""
 
@@ -37,7 +39,6 @@ class CPU:
         The value of the key pressed is stored in address `0xF4`
         
         """
-        SP = 7
         self.registers[SP] = 0xF4
 
 
@@ -158,45 +159,48 @@ class CPU:
     def run(self):
         """Run the CPU. Implement the core of `CPU`'s `run()` method """
         # _opcode = _operands
-        IR = self.PC
+        IR = self.PC # instruction_register or instruction (same as from load() method)
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
-        # MUL = 0b10100010
 
         running = True
 
         while running:
             IR = self.ram_read(self.PC)
-            # op_a = register_address
-            # op_b = register_data
+            op = {
+                0b10100010: 'MUL'
+            }
+
 
             #   Step 4: Implement the `HLT` instruction handler
             if IR == HLT:
-                # running = False
-                # self.PC += 1
                 sys.exit(0)
 
 
             # Step 5: Add the `LDI` instruction
             elif IR == LDI:
-                op_a = self.ram_read(self.PC + 1)
-                op_b = self.ram_read(self.PC + 2)
-                self.registers[op_a] = op_b
+                #register_A
+                register_a = self.ram_read(self.PC + 1)
+                #register_B
+                register_b = self.ram_read(self.PC + 2)
+                self.registers[register_a] = register_b
+                self.PC += 3
+            
+            elif IR in op:
+                register_a = self.memory[self.PC + 1]
+                register_b = self.memory[self.PC + 2]
+                self.alu(op[IR], register_a, register_b)
                 self.PC += 3
 
 
             # Step 6: Add the `PRN` instruction
             elif IR == PRN:
-                op_a = self.memory[self.PC + 1]
-                print(self.registers[op_a])
+                register_a = self.memory[self.PC + 1]
+                print(self.registers[register_a])
                 self.PC += 2
-
-            # elif instruction == MUL:
-            #     print(self.registers[op_a] * self.registers[op_b])
-
+            
 
             else:
                 print(f'Unknown instruction at: {IR}')
-                # running = False
                 sys.exit(1)
