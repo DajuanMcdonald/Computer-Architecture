@@ -45,9 +45,6 @@ class CPU:
         """#`PC`: Program Counter, address of the currently executing instruction """
         self.PC = 0
 
-        """# `IR`: Instruction Register, contains a copy of the currently executing instruction"""
-        # self.IR = 0
-
         """
         # `FL`: Flags, holds the current flags status
         # These flags can change based on the operands given to the `CMP` opcode.
@@ -199,12 +196,8 @@ class CPU:
   
         """
 
-        IR = self.PC #  local instruction_register
-
-        # _opcode = _operands
-        LDI = 0b10000010
-        PRN = 0b01000111
-        HLT = 0b00000001
+        """ `IR`: Instruction Register, contains a copy of the currently executing instruction""" 
+        IR = self.PC # local scope
 
         running = True
 
@@ -215,12 +208,12 @@ class CPU:
              This is _currently_ `O(n)` It would be a lot better if it were an `O(1)` process..
             """
             # Step 4: Implement the `HLT` instruction handler
-            if IR == HLT:
+            if IR == self.pc_mutators['HLT']:
                 sys.exit(0)
 
 
             # Step 5: Add the `LDI` instruction
-            elif IR == LDI:
+            elif IR == self.pc_mutators['LDI']:
                 #register_A
                 register_a = self.ram_read(self.PC + 1)
                 #register_B
@@ -230,7 +223,7 @@ class CPU:
             
 
             # Step 6: Add the `PRN` instruction
-            elif IR == PRN:
+            elif IR == self.pc_mutators['PRN']:
                 register_a = self.memory[self.PC + 1]
                 print(self.registers[register_a])
                 self.PC += 2
