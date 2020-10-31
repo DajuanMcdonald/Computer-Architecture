@@ -46,7 +46,7 @@ class CPU:
         self.PC = 0
 
         """# `IR`: Instruction Register, contains a copy of the currently executing instruction"""
-        self.IR = 0
+        # self.IR = 0
 
         """
         # `FL`: Flags, holds the current flags status
@@ -83,7 +83,8 @@ class CPU:
 
         }
 
-        # *These are instructions handled by the ALU.*
+
+        """ # *These are instructions handled by the ALU.* """
         self.alu_ops = {
             0b10100010: 'MUL',
             0b10100011: 'DIV',
@@ -105,8 +106,7 @@ class CPU:
 
     def load(self, program):
 
-        """Load a program into memory."""
-        # Step 7: Un-hardcode the machine code
+        """Load a program into memory. # Step 7: Un-hardcode the machine code """
 
         address = 0
         
@@ -196,11 +196,12 @@ class CPU:
         Using `ram_read()`,
         read the bytes at `PC+1` and `PC+2` from RAM into variables `operand_a` and
         `operand_b` in case the instruction needs them.
-
-        
+  
         """
+
+        IR = self.PC #  local instruction_register
+
         # _opcode = _operands
-        IR = self.PC # instruction_register or instruction (same as from load() method)
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
@@ -213,7 +214,7 @@ class CPU:
             """
              This is _currently_ `O(n)` It would be a lot better if it were an `O(1)` process..
             """
-            #   Step 4: Implement the `HLT` instruction handler
+            # Step 4: Implement the `HLT` instruction handler
             if IR == HLT:
                 sys.exit(0)
 
