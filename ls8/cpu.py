@@ -83,9 +83,25 @@ class CPU:
 
         }
 
+        # *These are instructions handled by the ALU.*
+        self.alu_ops = {
+            0b10100010: 'MUL',
+            0b10100011: 'DIV',
+            0b10100100: 'MOD',
+            0b10100001: 'SUB',
+            0b10100000: 'ADD',
+            0b10101011: 'XOR',
+            0b01101001: 'NOT',
+            0b10101010: 'OR',
+            0b01100101: 'INC',
+            0b01100110: 'DEC',
+            0b10100111: 'CMP',
+            0b10101100: 'SHL',
+            0b10101101: 'SHR',
+            0b10101000: 'AND'
 
+        }
 
-        
 
     def load(self, program):
 
@@ -103,14 +119,22 @@ class CPU:
                     self.memory[address] = int(instruction, 2)
                     address += 1
 
+
+    """ Step 2: Add RAM functions """
+
     """
-     Add RAM functions
+     > Inside the CPU, there are two internal registers used for memory operations:
+     > the _Memory Address Register_ (MAR) and the _Memory Data Register_ (MDR). The
+     > MAR contains the address that is being read or written to. The MDR contains
+     > the data that was read or the data to write. You don't need to add the MAR or
+     > MDR to your `CPU` class, but they would make handy parameter names for
+     > `ram_read()` and `ram_write()`, if you wanted.
+     
     """
     def ram_read(self, memory_address_register):
         """ should accept the address to read and return the value stored """
         memory_data_register = self.memory[memory_address_register]
         return memory_data_register
-
 
 
     def ram_write(self, memory_data_register, memory_address_register):
@@ -126,6 +150,8 @@ class CPU:
         
         elif op == "SUB":
             self.registers[reg_a] -= self.registers[reg_b]
+
+        # Step 8: Implement a Multiply and Print the Result
         elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
         else:
@@ -154,7 +180,25 @@ class CPU:
 
 
     def run(self):
-        """Run the CPU. Implement the core of `CPU`'s `run()` method """
+        """  Step 3: Implement the core of `CPU`'s `run()` method """
+
+        """
+        This is the workhorse function of the entire processor.
+
+        It needs to read the memory address that's stored in register `PC`, and store
+        that result in `IR`, the _Instruction Register_.
+
+
+        Some instructions requires up to the next two bytes of data _after_ the `PC` in
+        memory to perform operations on. Sometimes the byte value is a register number,
+        other times it's a constant value (in the case of `LDI`).
+
+        Using `ram_read()`,
+        read the bytes at `PC+1` and `PC+2` from RAM into variables `operand_a` and
+        `operand_b` in case the instruction needs them.
+
+        
+        """
         # _opcode = _operands
         IR = self.PC # instruction_register or instruction (same as from load() method)
         LDI = 0b10000010
@@ -165,26 +209,10 @@ class CPU:
 
         while running:
             IR = self.ram_read(self.PC)
-            # *These are instructions handled by the ALU.*
-            alu_ops = {
-                0b10100010: 'MUL',
-                0b10100011: 'DIV',
-                0b10100100: 'MOD',
-                0b10100001: 'SUB',
-                0b10100000: 'ADD',
-                0b10101011: 'XOR',
-                0b01101001: 'NOT',
-                0b10101010: 'OR',
-                0b01100101: 'INC',
-                0b01100110: 'DEC',
-                0b10100111: 'CMP',
-                0b10101100: 'SHL',
-                0b10101101: 'SHR',
-                0b10101000: 'AND'
 
-            }
-
-
+            """
+             This is _currently_ `O(n)` It would be a lot better if it were an `O(1)` process..
+            """
             #   Step 4: Implement the `HLT` instruction handler
             if IR == HLT:
                 sys.exit(0)
@@ -200,19 +228,21 @@ class CPU:
                 self.PC += 3
             
 
-
             # Step 6: Add the `PRN` instruction
             elif IR == PRN:
                 register_a = self.memory[self.PC + 1]
                 print(self.registers[register_a])
                 self.PC += 2
             
+
             # Arithmetic (alu) Operations
-            elif IR in alu_ops:
+            # Step 8: Implement a Multiply and Print the Result
+            elif IR in self.alu_ops:
                 register_a = self.memory[self.PC + 1]
                 register_b = self.memory[self.PC + 2]
-                self.alu(alu_ops[IR], register_a, register_b)
+                self.alu(self.alu_ops[IR], register_a, register_b)
                 self.PC += 3
+
 
             else:
                 print(f'Unknown instruction at: {IR}')
