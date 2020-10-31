@@ -130,12 +130,16 @@ class CPU:
     """
     def ram_read(self, memory_address_register):
         """ should accept the address to read and return the value stored """
+
+        # note: here we are using _operands_ : _opcode_
         memory_data_register = self.memory[memory_address_register]
         return memory_data_register
 
 
     def ram_write(self, memory_data_register, memory_address_register):
         """ should accept the value to write and the address to write to """
+
+        # note: here we are using _opcode_ : _operands_ 
         self.memory[memory_address_register] = memory_data_register
 
 
@@ -196,11 +200,9 @@ class CPU:
   
         """
 
-        """ `IR`: Instruction Register, contains a copy of the currently executing instruction""" 
-        IR = self.PC # local scope
-
         running = True
 
+        """ `IR`: Instruction Register, contains a copy of the currently executing instruction"""
         while running:
             IR = self.ram_read(self.PC)
 
