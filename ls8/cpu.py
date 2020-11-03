@@ -42,13 +42,13 @@ class CPU:
         self.registers[SP] = 0xF4
 
 
-        """#`PC`: Program Counter, address of the currently executing instruction """
+        """#`PC`: Program Counter, address of the currently executing instruction : internal register"""
         self.PC = 0
 
         """
         # `FL`: Flags, holds the current flags status
         # These flags can change based on the operands given to the `CMP` opcode.
-        # If a particular bit is set, that flag is "true"
+        # If a particular bit is set, that flag is "true" : internal register
         """
         self.FL = 0
 
@@ -73,11 +73,13 @@ class CPU:
 
         * CMP : Compare the values in two registers.
         """
+        """ Not really all mutators rather register instructions.. but will likely store other and mutators here"""
         self.pc_mutators = {
             'PRN' : 0b01000111,
             'LDI' : 0b10000010,
             'HLT' : 0b00000001,
-
+            'PUSH': 0b01000101,
+            'POP' : 0b01000110
         }
 
 
@@ -120,7 +122,7 @@ class CPU:
     """ Step 2: Add RAM functions """
 
     """
-     > Inside the CPU, there are two internal registers used for memory operations:
+     > Inside the CPU, there are two __internal registers__ used for memory operations:
      > the _Memory Address Register_ (MAR) and the _Memory Data Register_ (MDR). The
      > MAR contains the address that is being read or written to. The MDR contains
      > the data that was read or the data to write. You don't need to add the MAR or
@@ -230,6 +232,21 @@ class CPU:
                 print(self.registers[register_a])
                 self.PC += 2
             
+
+            # Add the POP instruction
+            elif IR == self.pc_mutators['POP']:
+                register_a = self.memory[self.PC + 1]
+                self.registers[register_a] = self.memory[self.registers[SP]]
+                self.registers[SP] += 1
+                self.PC += 2
+
+            # Add the PUSH instruction
+            elif IR == self.pc_mutators['PUSH']:
+                register_a = self.memory[self.PC + 1]
+                register_b = self.registers[register_a]
+                self.registers[SP] -= 1
+                self.memory[self.registers[SP]] = register_b
+                self.PC += 2
 
             # Arithmetic (alu) Operations
             # Step 8: Implement a Multiply and Print the Result
