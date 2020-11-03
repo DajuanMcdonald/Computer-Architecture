@@ -218,9 +218,9 @@ class CPU:
 
             # Step 5: Add the `LDI` instruction
             elif IR == self.pc_mutators['LDI']:
-                #register_A
+                #register_A : the Address
                 register_a = self.ram_read(self.PC + 1)
-                #register_B
+                #register_B : the Value
                 register_b = self.ram_read(self.PC + 2)
                 self.registers[register_a] = register_b
                 self.PC += 3
