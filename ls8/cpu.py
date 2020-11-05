@@ -79,7 +79,9 @@ class CPU:
             'LDI' : 0b10000010,
             'HLT' : 0b00000001,
             'PUSH': 0b01000101,
-            'POP' : 0b01000110
+            'POP' : 0b01000110,
+            'CALL': 0b01010000,
+            'RET' : 0b00010001
         }
 
 
@@ -240,6 +242,7 @@ class CPU:
                 self.registers[SP] += 1
                 self.PC += 2
 
+
             # Add the PUSH instruction
             elif IR == self.pc_mutators['PUSH']:
                 register_a = self.memory[self.PC + 1]
@@ -247,6 +250,17 @@ class CPU:
                 self.registers[SP] -= 1
                 self.memory[self.registers[SP]] = register_b
                 self.PC += 2
+
+            elif IR == self.pc_mutators['CALL']:
+                self.registers[SP] -= 1
+                self.memory[self.registers[SP]] = self.PC + 2
+                register_a = self.memory[self.PC + 1]
+                self.PC = self.registers[register_a]
+
+            elif IR == self.pc_mutators['RET']:
+                self.PC = self.memory[self.registers[SP]]
+                self.registers[SP] += 1
+
 
             # Arithmetic (alu) Operations
             # Step 8: Implement a Multiply and Print the Result
