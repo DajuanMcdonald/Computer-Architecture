@@ -270,6 +270,15 @@ register
                 self.PC = self.memory[self.registers[SP]]
                 self.registers[SP] += 1
 
+            elif IR == self.pc_mutators['JMP']:
+                pass
+
+            elif IR == self.pc_mutators['JEQ']:
+                pass
+
+            elif IR == self.pc_mutators['JNE']:
+                pass
+
 
             # Arithmetic (alu) Operations
             # Step 8: Implement a Multiply and Print the Result
