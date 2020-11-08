@@ -59,9 +59,10 @@ class CPU:
         * INT : 
         * IRET
         * LDI : Set the value of a register to an integer.
-        * JMP
-        * JNE
-        * JEQ
+        * JMP : Jump to the address stored in the given register
+        * JNE : If `E` flag is clear (false, 0), jump to the address stored in the given
+register
+        * JEQ : If `equal` flag is set (true), jump to the address stored in the given register
         * JGT
         * JGE
         * JLT
@@ -81,7 +82,10 @@ class CPU:
             'PUSH': 0b01000101,
             'POP' : 0b01000110,
             'CALL': 0b01010000,
-            'RET' : 0b00010001
+            'RET' : 0b00010001,
+            'JMP' : 0b01010100,
+            'JNE' : 0b01010110,
+            'JEQ' : 0b01010101,
         }
 
 
@@ -159,6 +163,9 @@ class CPU:
         # Step 8: Implement a Multiply and Print the Result
         elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
+
+        elif op == "CMP":
+            self.registers[reg_a] == self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -251,12 +258,14 @@ class CPU:
                 self.memory[self.registers[SP]] = register_b
                 self.PC += 2
 
+            # Add the CALL instruction
             elif IR == self.pc_mutators['CALL']:
                 self.registers[SP] -= 1
                 self.memory[self.registers[SP]] = self.PC + 2
                 register_a = self.memory[self.PC + 1]
                 self.PC = self.registers[register_a]
 
+            # Add the RET instruction
             elif IR == self.pc_mutators['RET']:
                 self.PC = self.memory[self.registers[SP]]
                 self.registers[SP] += 1
