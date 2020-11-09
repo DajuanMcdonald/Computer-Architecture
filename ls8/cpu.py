@@ -4,11 +4,69 @@ import sys
 from sys import argv
 
 SP = 7
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+PRN = 0b01000111
+LDI = 0b10000010
+HLT = 0b00000001
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
+        self.pc_mutators = {
+            'PRN' : 0b01000111,
+            'LDI' : 0b10000010,
+            'HLT' : 0b00000001,
+            'PUSH': 0b01000101,
+            'POP' : 0b01000110,
+            'CALL': 0b01010000,
+            'RET' : 0b00010001,
+            'JMP' : 0b01010100,
+            'JNE' : 0b01010110,
+            'JEQ' : 0b01010101,
+        }
+
+        self.alu_ops = {
+            0b10100010: 'MUL',
+            0b10100011: 'DIV',
+            0b10100100: 'MOD',
+            0b10100001: 'SUB',
+            0b10100000: 'ADD',
+            0b10101011: 'XOR',
+            0b01101001: 'NOT',
+            0b10101010: 'OR',
+            0b01100101: 'INC',
+            0b01100110: 'DEC',
+            0b10100111: 'CMP',
+            0b10101100: 'SHL',
+            0b10101101: 'SHR',
+            0b10101000: 'AND'
+        }
+        # Set up the branch table
+        self.branchtable = {}
+        self.branchtable[CMP] = self.handle_cmp
+        self.branchtable[JMP] = self.handle_jmp
+        self.branchtable[JEQ] = self.handle_jeq
+        self.branchtable[JNE] = self.handle_jne
+        self.branchtable[PUSH] = self.handle_push
+        self.branchtable[POP] = self.handle_pop
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[PRN] = self.handle_prn
+        self.branchtable[HLT] = self.handle_hlt
+        self.branchtable[RET] = self.handle_ret
+        self.branchtable[LDI] = self.handle_ldi
+
+
+
+
+
         """ When the LS-8 CPU is booted, the following steps occur: """
         """
         ## Registers
@@ -53,60 +111,12 @@ class CPU:
         self.FL = 0
 
 
-        """
-        Some instructions set the PC directly. These are:
-        * CALL : Calls a subroutine (function) at the address stored in the register.
-        * INT : 
-        * IRET
-        * LDI : Set the value of a register to an integer.
-        * JMP : Jump to the address stored in the given register
-        * JNE : If `E` flag is clear (false, 0), jump to the address stored in the given
-register
-        * JEQ : If `equal` flag is set (true), jump to the address stored in the given register
-        * JGT
-        * JGE
-        * JLT
-        * JLE
-        * RET
-        * HLT : Halt the CPU (and exit the emulator).
-        * PRN : Print numeric value stored in the given register.
-        * MUL : Multiply the values in two registers together and store the result in registerA.
 
-        * CMP : Compare the values in two registers.
-        """
-        """ Not really all mutators rather register instructions.. but will likely store other and mutators here"""
-        self.pc_mutators = {
-            'PRN' : 0b01000111,
-            'LDI' : 0b10000010,
-            'HLT' : 0b00000001,
-            'PUSH': 0b01000101,
-            'POP' : 0b01000110,
-            'CALL': 0b01010000,
-            'RET' : 0b00010001,
-            'JMP' : 0b01010100,
-            'JNE' : 0b01010110,
-            'JEQ' : 0b01010101,
-        }
+    
 
 
-        """ # *These are instructions handled by the ALU.* """
-        self.alu_ops = {
-            0b10100010: 'MUL',
-            0b10100011: 'DIV',
-            0b10100100: 'MOD',
-            0b10100001: 'SUB',
-            0b10100000: 'ADD',
-            0b10101011: 'XOR',
-            0b01101001: 'NOT',
-            0b10101010: 'OR',
-            0b01100101: 'INC',
-            0b01100110: 'DEC',
-            0b10100111: 'CMP',
-            0b10101100: 'SHL',
-            0b10101101: 'SHR',
-            0b10101000: 'AND'
 
-        }
+
 
 
     def load(self, program):
@@ -140,8 +150,9 @@ register
         """ should accept the address to read and return the value stored """
 
         # note: here we are using _operands_ : _opcode_
-        memory_data_register = self.memory[memory_address_register]
-        return memory_data_register
+        # memory_data_register = self.memory[memory_address_register]
+        # return memory_data_register
+        return self.memory[memory_address_register]
 
 
     def ram_write(self, memory_data_register, memory_address_register):
@@ -150,6 +161,59 @@ register
         # note: here we are using _opcode_ : _operands_ 
         self.memory[memory_address_register] = memory_data_register
 
+
+    def handle_jmp(self):
+        register_a = self.memory[self.PC + 1]
+        self.PC = self.registers[register_a]
+
+    def handle_jeq(self):
+        if self.E == 1:
+            self.handle_jmp()
+        else:
+            self.PC += 2
+
+    def handle_jne(self):
+        if self.E == 0:
+            self.handle_jmp()
+        else:
+            self.PC += 2
+
+    def handle_push(self):
+        register_a = self.memory[self.PC + 1]
+        register_b = self.registers[register_a]
+        self.registers[SP] -= 1
+        self.memory[self.registers[SP]] = register_b
+        self.PC += 2
+
+    def handle_pop(self):
+        register_a = self.memory[self.PC + 1]
+        self.registers[register_a] = self.memory[self.registers[SP]]
+        self.registers[SP] += 1
+        self.PC += 2
+
+    def handle_call(self):
+        self.registers[SP] -= 1
+        self.memory[self.registers[SP]] = self.PC + 2
+        register_a = self.memory[self.PC + 1]
+        self.PC = self.registers[register_a]
+
+    def handle_hlt(self):
+        sys.exit(0)
+
+    def handle_ret(self):
+        self.PC = self.memory[self.registers[SP]]
+        self.registers[SP] += 1
+
+    def handle_ldi(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.registers[register_a] = register_b
+        self.PC += 3
+
+    def handle_prn(self):
+        register_a = self.memory[self.PC + 1]
+        print(self.registers[register_a])
+        self.PC += 2
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -165,10 +229,37 @@ register
             self.registers[reg_a] *= self.registers[reg_b]
 
         elif op == "CMP":
-            self.registers[reg_a] == self.registers[reg_b]
+            if self.registers[reg_a] == self.registers[reg_b]:
+                self.E = 1
+                self.L = self.FL
+                self.G = self.FL
+            elif reg_a < reg_b:
+                self.E = self.FL
+                self.L = 1
+                self.G = self.FL
+
+            elif reg_a > reg_b:
+                self.E = self.FL
+                self.L = self.FL
+                self.G = self.FL
 
         else:
             raise Exception("Unsupported ALU operation")
+
+    """ *These are instructions handled by the ALU.* """
+
+    def handle_cmp(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('CMP', register_a, register_b)
+        self.PC += 3
+
+
+    def handle_add(self, register_a, register_b):
+        pass
+
+    def handle_sub(self, register_a, register_b): 
+        pass
 
     def trace(self):
         """
@@ -211,106 +302,111 @@ register
         `operand_b` in case the instruction needs them.
   
         """
-
         running = True
 
         """ `IR`: Instruction Register, contains a copy of the currently executing instruction"""
         while running:
-            IR = self.ram_read(self.PC)
+            IR = self.PC
+            INS = self.memory[IR]
+            self.branchtable[INS]()
 
-            """
+            """ 
              This is _currently_ `O(n)` It would be a lot better if it were an `O(1)` process..
             """
             # Step 4: Implement the `HLT` instruction handler
-            if IR == self.pc_mutators['HLT']:
-                sys.exit(0)
+            # if IR == self.pc_mutators['HLT']:
+            #     sys.exit(0)
 
 
-            # Step 5: Add the `LDI` instruction
-            elif IR == self.pc_mutators['LDI']:
-                #register_A : the Address
-                register_a = self.ram_read(self.PC + 1)
-                #register_B : the Value
-                register_b = self.ram_read(self.PC + 2)
-                self.registers[register_a] = register_b
-                self.PC += 3
+            # # Step 5: Add the `LDI` instruction
+            # elif IR == self.pc_mutators['LDI']:
+            #     #register_A : the Address
+            #     register_a = self.ram_read(self.PC + 1)
+            #     #register_B : the Value
+            #     register_b = self.ram_read(self.PC + 2)
+            #     self.registers[register_a] = register_b
+            #     self.PC += 3
             
 
-            # Step 6: Add the `PRN` instruction
-            elif IR == self.pc_mutators['PRN']:
-                register_a = self.memory[self.PC + 1]
-                print(self.registers[register_a])
-                self.PC += 2
+            # # Step 6: Add the `PRN` instruction
+            # elif IR == self.pc_mutators['PRN']:
+            #     register_a = self.memory[self.PC + 1]
+            #     print(self.registers[register_a])
+            #     self.PC += 2
             
 
-            # Add the POP instruction
-            elif IR == self.pc_mutators['POP']:
-                register_a = self.memory[self.PC + 1]
-                self.registers[register_a] = self.memory[self.registers[SP]]
-                self.registers[SP] += 1
-                self.PC += 2
+            # # Add the POP instruction
+            # elif IR == self.pc_mutators['POP']:
+            #     register_a = self.memory[self.PC + 1]
+            #     self.registers[register_a] = self.memory[self.registers[SP]]
+            #     self.registers[SP] += 1
+            #     self.PC += 2
 
 
-            # Add the PUSH instruction
-            elif IR == self.pc_mutators['PUSH']:
-                register_a = self.memory[self.PC + 1]
-                register_b = self.registers[register_a]
-                self.registers[SP] -= 1
-                self.memory[self.registers[SP]] = register_b
-                self.PC += 2
+            # # Add the PUSH instruction
+            # elif IR == self.pc_mutators['PUSH']:
+            #     register_a = self.memory[self.PC + 1]
+            #     register_b = self.registers[register_a]
+            #     self.registers[SP] -= 1
+            #     self.memory[self.registers[SP]] = register_b
+            #     self.PC += 2
 
-            # Add the CALL instruction
-            elif IR == self.pc_mutators['CALL']:
-                self.registers[SP] -= 1
-                self.memory[self.registers[SP]] = self.PC + 2
-                register_a = self.memory[self.PC + 1]
-                self.PC = self.registers[register_a]
+            # # Add the CALL instruction
+            # elif IR == self.pc_mutators['CALL']:
+            #     self.registers[SP] -= 1
+            #     self.memory[self.registers[SP]] = self.PC + 2
+            #     register_a = self.memory[self.PC + 1]
+            #     self.PC = self.registers[register_a]
 
-            # Add the RET instruction
-            elif IR == self.pc_mutators['RET']:
-                self.PC = self.memory[self.registers[SP]]
-                self.registers[SP] += 1
+            # # Add the RET instruction
+            # elif IR == self.pc_mutators['RET']:
+            #     self.PC = self.memory[self.registers[SP]]
+            #     self.registers[SP] += 1
 
-            # Add the JMP instruction
-            # Jump to the address stored in the given register.
-            # Set the `PC` to the address stored in the given register.
+            # # Add the JMP instruction
+            # # Jump to the address stored in the given register.
+            # # Set the `PC` to the address stored in the given register.
 
-            elif IR == self.pc_mutators['JMP']:
-                register_a = self.ram_read(self.PC + 1)
-                self.PC = self.registers[register_a]
+            # elif IR == self.pc_mutators['JMP']:
+            #     register_a = self.ram_read(self.PC + 1)
+            #     self.PC = self.registers[register_a]
+
             
 
-            # Add the JEQ instruction
-            elif IR == self.pc_mutators['JEQ']:
-                self.registers[self.FL] = 1
-                register_a = self.ram_read(self.PC + 1)
-                self.PC = self.registers[register_a]
-
-
-            # Add the JNE instruction
-            elif IR == self.pc_mutators['JNE']:
-                self.registers[self.FL] = 1
-                register_a = self.ram_read(self.PC + 1)
-                self.PC = self.registers[register_a]
+            # # Add the JEQ instruction
+            # elif IR == self.pc_mutators['JEQ']:
+            #     register_a = self.ram_read(self.PC + 1)
+            #     # register_a = self.memory[self.PC + 1]
+            #     self.registers[self.FL] == 1
+            #     self.PC = self.registers[register_a]
                 
 
 
-            # Arithmetic (alu) Operations
-            # Step 8: Implement a Multiply and Print the Result
-            elif IR in self.alu_ops:
-                register_a = self.memory[self.PC + 1]
-                register_b = self.memory[self.PC + 2]
-                self.alu(self.alu_ops[IR], register_a, register_b)
-                self.PC += 3
-
-            # elif IR == self.alu_ops['CMP']:
+            # # Add the JNE instruction
+            # elif IR == self.pc_mutators['JNE']:
             #     register_a = self.ram_read(self.PC + 1)
-            #     register_b = self.ram_read(self.PC + 2)
-            #     if self.registers[register_a] == self.registers[register_b]:
-            #         self.registers[self.FL] = 1
-            #     elif self.registers[register_a] > self.registers[register_b]:
-            #         self.registers[self.FL] = 2
+            #     # register_a = self.memory[self.PC + 1]
+                
+            #     self.registers[self.FL] == 1
+            #     self.PC = self.registers[register_a]
 
-            else:
-                print(f'Unknown instruction at: {IR}')
-                sys.exit(1)
+
+            # # Arithmetic (alu) Operations
+            # # Step 8: Implement a Multiply and Print the Result
+            # elif IR in self.alu_ops:
+            #     register_a = self.memory[self.PC + 1]
+            #     register_b = self.memory[self.PC + 2]
+            #     self.alu(self.alu_ops[IR], register_a, register_b)
+            #     self.PC += 3
+
+            # # elif IR == self.alu_ops['CMP']:
+            # #     register_a = self.ram_read(self.PC + 1)
+            # #     register_b = self.ram_read(self.PC + 2)
+            # #     if self.registers[register_a] == self.registers[register_b]:
+            # #         self.registers[self.FL] = 1
+            # #     elif self.registers[register_a] > self.registers[register_b]:
+            # #         self.registers[self.FL] = 2
+
+            # else:
+            #     print(f'Unknown instruction at: {IR}')
+            #     sys.exit(1)
