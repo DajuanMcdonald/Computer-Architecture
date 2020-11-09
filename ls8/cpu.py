@@ -166,6 +166,7 @@ register
 
         elif op == "CMP":
             self.registers[reg_a] == self.registers[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -270,14 +271,28 @@ register
                 self.PC = self.memory[self.registers[SP]]
                 self.registers[SP] += 1
 
+            # Add the JMP instruction
+            # Jump to the address stored in the given register.
+            # Set the `PC` to the address stored in the given register.
+
             elif IR == self.pc_mutators['JMP']:
-                pass
+                register_a = self.ram_read(self.PC + 1)
+                self.PC = self.registers[register_a]
+            
 
+            # Add the JEQ instruction
             elif IR == self.pc_mutators['JEQ']:
-                pass
+                self.registers[self.FL] = 1
+                register_a = self.ram_read(self.PC + 1)
+                self.PC = self.registers[register_a]
 
+
+            # Add the JNE instruction
             elif IR == self.pc_mutators['JNE']:
-                pass
+                self.registers[self.FL] = 1
+                register_a = self.ram_read(self.PC + 1)
+                self.PC = self.registers[register_a]
+                
 
 
             # Arithmetic (alu) Operations
@@ -288,6 +303,13 @@ register
                 self.alu(self.alu_ops[IR], register_a, register_b)
                 self.PC += 3
 
+            # elif IR == self.alu_ops['CMP']:
+            #     register_a = self.ram_read(self.PC + 1)
+            #     register_b = self.ram_read(self.PC + 2)
+            #     if self.registers[register_a] == self.registers[register_b]:
+            #         self.registers[self.FL] = 1
+            #     elif self.registers[register_a] > self.registers[register_b]:
+            #         self.registers[self.FL] = 2
 
             else:
                 print(f'Unknown instruction at: {IR}')
