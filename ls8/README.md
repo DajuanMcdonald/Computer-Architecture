@@ -59,8 +59,12 @@ but you'll have to implement those three above instructions first!
 
 ## Step 0: IMPORTANT: inventory what is here!
 
-* Make a list of files here.
+* Make a list of files here. 
+-- cpu.py
+-- ls8.py
 * Write a short 3-10-word description of what each file does.
+--cpu.py: where instructions are loaded and run
+--ls8.py: is the main file to be executed
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
 * Skim the spec.
@@ -74,6 +78,7 @@ general-purpose registers.
 >
 > ```python
 > x = [0] * 25  # x is a list of 25 zeroes
+> x = bytearray(25) # x is iterable object in range 25
 > ```
 
 Also add properties for any internal registers you need, e.g. `PC`.
