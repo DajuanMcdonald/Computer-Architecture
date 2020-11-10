@@ -15,24 +15,21 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+MUL = 0b10100010
+DIV = 0b10100011
+MOD = 0b10100100
+SUB = 0b10100001
+ADD = 0b10100000
+DEC = 0b01100110
+INC = 0b01100101
+PRA = 0b01001000
+
+
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        self.pc_mutators = {
-            'PRN' : 0b01000111,
-            'LDI' : 0b10000010,
-            'HLT' : 0b00000001,
-            'PUSH': 0b01000101,
-            'POP' : 0b01000110,
-            'CALL': 0b01010000,
-            'RET' : 0b00010001,
-            'JMP' : 0b01010100,
-            'JNE' : 0b01010110,
-            'JEQ' : 0b01010101,
-        }
-
         self.alu_ops = {
             0b10100010: 'MUL',
             0b10100011: 'DIV',
@@ -49,6 +46,19 @@ class CPU:
             0b10101101: 'SHR',
             0b10101000: 'AND'
         }
+        # self.pc_mutators = {
+        #     'PRN' : 0b01000111,
+        #     'LDI' : 0b10000010,
+        #     'HLT' : 0b00000001,
+        #     'PUSH': 0b01000101,
+        #     'POP' : 0b01000110,
+        #     'CALL': 0b01010000,
+        #     'RET' : 0b00010001,
+        #     'JMP' : 0b01010100,
+        #     'JNE' : 0b01010110,
+        #     'JEQ' : 0b01010101,
+        # }
+
         # Set up the branch table
         self.branchtable = {}
         self.branchtable[CMP] = self.handle_cmp
@@ -62,6 +72,12 @@ class CPU:
         self.branchtable[HLT] = self.handle_hlt
         self.branchtable[RET] = self.handle_ret
         self.branchtable[LDI] = self.handle_ldi
+        self.branchtable[ADD] = self.handle_add
+        self.branchtable[SUB] = self.handle_sub
+        self.branchtable[MUL] = self.handle_mul
+        self.branchtable[DEC] = self.handle_dec
+        self.branchtable[INC] = self.handle_inc
+        self.branchtable[PRA] = self.handle_pra
 
 
 
@@ -112,11 +128,6 @@ class CPU:
 
 
 
-    
-
-
-
-
 
 
     def load(self, program):
@@ -161,7 +172,6 @@ class CPU:
         # note: here we are using _opcode_ : _operands_ 
         self.memory[memory_address_register] = memory_data_register
 
-
     def handle_jmp(self):
         register_a = self.memory[self.PC + 1]
         self.PC = self.registers[register_a]
@@ -173,7 +183,7 @@ class CPU:
             self.PC += 2
 
     def handle_jne(self):
-        if self.E == 0:
+        if self.E == self.FL:
             self.handle_jmp()
         else:
             self.PC += 2
@@ -215,6 +225,14 @@ class CPU:
         print(self.registers[register_a])
         self.PC += 2
 
+    def handle_pra(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.registers[register_a] = register_b
+        self.PC += 3
+
+        print(ascii(register_b))
+
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -227,6 +245,12 @@ class CPU:
         # Step 8: Implement a Multiply and Print the Result
         elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
+
+        elif op == "DEC":
+            self.registers[reg_a] = self.registers[reg_b] - 1
+
+        elif op == "INC":
+            self.registers[reg_a] = self.registers[reg_b] + 1
 
         elif op == "CMP":
             if self.registers[reg_a] == self.registers[reg_b]:
@@ -255,11 +279,35 @@ class CPU:
         self.PC += 3
 
 
-    def handle_add(self, register_a, register_b):
-        pass
+    def handle_add(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('ADD', register_a, register_b)
+        self.PC += 3
 
-    def handle_sub(self, register_a, register_b): 
-        pass
+    def handle_sub(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('SUB', register_a, register_b)
+        self.PC += 3
+
+    def handle_mul(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('MUL', register_a, register_b)
+        self.PC += 3
+
+    def handle_dec(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('DEC', register_a, register_b)
+        self.PC += 3
+
+    def handle_inc(self):
+        register_a = self.ram_read(self.PC + 1)
+        register_b = self.ram_read(self.PC + 2)
+        self.alu('INC', register_a, register_b)
+        self.PC += 3
 
     def trace(self):
         """
@@ -393,19 +441,19 @@ class CPU:
 
             # # Arithmetic (alu) Operations
             # # Step 8: Implement a Multiply and Print the Result
-            # elif IR in self.alu_ops:
+            # if IR in self.alu_ops:
             #     register_a = self.memory[self.PC + 1]
             #     register_b = self.memory[self.PC + 2]
             #     self.alu(self.alu_ops[IR], register_a, register_b)
             #     self.PC += 3
 
-            # # elif IR == self.alu_ops['CMP']:
-            # #     register_a = self.ram_read(self.PC + 1)
-            # #     register_b = self.ram_read(self.PC + 2)
-            # #     if self.registers[register_a] == self.registers[register_b]:
-            # #         self.registers[self.FL] = 1
-            # #     elif self.registers[register_a] > self.registers[register_b]:
-            # #         self.registers[self.FL] = 2
+            # if IR == self.alu_ops['CMP']:
+            #     register_a = self.ram_read(self.PC + 1)
+            #     register_b = self.ram_read(self.PC + 2)
+            #     if self.registers[register_a] == self.registers[register_b]:
+            #         self.registers[self.FL] = 1
+            #     elif self.registers[register_a] > self.registers[register_b]:
+            #         self.registers[self.FL] = 2
 
             # else:
             #     print(f'Unknown instruction at: {IR}')
